@@ -1,5 +1,8 @@
 public struct Parser<Output> {
   public let run: (inout Substring) -> Output?
+  public init(run: @escaping (inout Substring) -> Output?) {
+    self.run = run
+  }
   
   public func run(_ str: String) -> (match: Output?, rest: Substring) {
     var str = str[...]
