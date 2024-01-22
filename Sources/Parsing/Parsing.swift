@@ -1,14 +1,14 @@
-struct Parser<Output> {
-  let run: (inout Substring) -> Output?
+public struct Parser<Output> {
+  public let run: (inout Substring) -> Output?
   
-  func run(_ str: String) -> (match: Output?, rest: Substring) {
+  public func run(_ str: String) -> (match: Output?, rest: Substring) {
     var str = str[...]
     let match = self.run(&str)
     return (match, str)
   }
 }
 
-extension Parser {
+public extension Parser {
   func map<B>(_ f: @escaping (Output) -> B) -> Parser<B> {
     return Parser<B> { str -> B? in
       self.run(&str).map(f)
@@ -29,7 +29,7 @@ extension Parser {
   }
 }
 
-func zip<A, B>(_ a: Parser<A>, _ b: Parser<B>) -> Parser<(A, B)> {
+public func zip<A, B>(_ a: Parser<A>, _ b: Parser<B>) -> Parser<(A, B)> {
   return Parser<(A, B)> { str -> (A, B)? in
     let original = str
     guard let matchA = a.run(&str) else {
@@ -44,7 +44,7 @@ func zip<A, B>(_ a: Parser<A>, _ b: Parser<B>) -> Parser<(A, B)> {
 }
 
 // MARK: zip overloads
-func zip<A, B, C>(
+public func zip<A, B, C>(
   _ a: Parser<A>,
   _ b: Parser<B>,
   _ c: Parser<C>
@@ -53,7 +53,7 @@ func zip<A, B, C>(
     .map { a, bc in (a, bc.0, bc.1) }
 }
 
-func zip<A, B, C, D>(
+public func zip<A, B, C, D>(
   _ a: Parser<A>,
   _ b: Parser<B>,
   _ c: Parser<C>,
@@ -63,7 +63,7 @@ func zip<A, B, C, D>(
     .map { a, bcd in (a, bcd.0, bcd.1, bcd.2) }
 }
 
-func zip<A, B, C, D, E>(
+public func zip<A, B, C, D, E>(
   _ a: Parser<A>,
   _ b: Parser<B>,
   _ c: Parser<C>,
@@ -76,13 +76,13 @@ func zip<A, B, C, D, E>(
 
 // MARK: Always/Never parsers
 // always succeeds
-extension Parser {
+public extension Parser {
   static func always<A>(_ a: A) -> Parser<A> {
     return Parser<A> { _ in a }
   }
 }
 
-extension Parser {
+public extension Parser {
   // always fails
   static var never: Parser {
     return Parser { _ in nil }
@@ -91,7 +91,7 @@ extension Parser {
 
 // MARK: Prefix funcs
 // returns a Parser<Substring> that prefixes until predicate fails
-extension Parser where Output == Substring {
+public extension Parser where Output == Substring {
   static func prefix(while p: @escaping (Character) -> Bool) -> Self {
     return Self { str in
       let prefix = str.prefix(while: p)
@@ -102,7 +102,7 @@ extension Parser where Output == Substring {
 }
 
 // Prefixes so long as characters not contained in given set
-extension Parser where Output == Substring {
+public extension Parser where Output == Substring {
   static func matchingAllCharacters(notIn set: Set<Character>) -> Self {
     return .prefix(while: { !set.contains($0) })
   }
@@ -112,7 +112,7 @@ extension Parser where Output == Substring {
 // kind of like a lookahead I think, but might be strange.
 // I know the whole point of these parsers is that you
 // have to consume something but idk how to perform this check otherwise
-extension Parser where Output == Void {
+public extension Parser where Output == Void {
   static func startsWithCharacter(
     notIn set: Set<Character>
   ) -> Self {
@@ -126,7 +126,7 @@ extension Parser where Output == Void {
 }
 
 // parses literal off begining of string
-extension Parser where Output == Void {
+public extension Parser where Output == Void {
   static func prefix(_ p: String) -> Self {
     return Self { str in
       guard str.hasPrefix(p) else { return nil }
@@ -137,21 +137,21 @@ extension Parser where Output == Void {
 }
 
 extension Parser: ExpressibleByUnicodeScalarLiteral where Output == Void {
-  typealias UnicodeScalarLiteralType = StringLiteralType
+  public typealias UnicodeScalarLiteralType = StringLiteralType
 }
 
 extension Parser: ExpressibleByExtendedGraphemeClusterLiteral where Output == Void {
-  typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
+  public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 }
 
 extension Parser: ExpressibleByStringLiteral where Output == Void {
-  typealias StringLiteralType = String
-  init(stringLiteral value: String) {
+  public typealias StringLiteralType = String
+  public init(stringLiteral value: String) {
     self = .prefix(value)
   }
 }
 
-extension Parser {
+public extension Parser {
   func zeroOrMore(separatedBy s: Parser<Void> = "") -> Parser<[Output]> {
     return Parser<[Output]> { str in
       var matches: [Output] = []
@@ -169,7 +169,7 @@ extension Parser {
   }
 }
 
-extension Parser where Output == Character {
+public extension Parser where Output == Character {
   static let char = Self { str in
     guard !str.isEmpty else { return nil }
     return str.removeFirst()
@@ -191,13 +191,12 @@ extension Parser {
     }
   }
   
-  // Variadic overload of `oneOf`, use this one over array version
-  static func oneOf<A>(_ ps: Parser<A>...) -> Parser<A> {
+  public static func oneOf<A>(_ ps: Parser<A>...) -> Parser<A> {
     return oneOf(ps)
   }
 }
 
-extension Parser where Output == Void {
+public extension Parser where Output == Void {
   static let zeroOrMoreSpaces = Parser<Substring>
     .prefix(while: { $0 == " " })
     .map { _ in }
@@ -214,7 +213,7 @@ extension Parser where Output == Void {
 // Function that wraps another parser in a parser that always
 // succeeds and is allowed to return nil.
 // I came up with this but am still kind of confused why it works.
-func optionally<A>(_ p: Parser<A>) -> Parser<A?> {
+public func optionally<A>(_ p: Parser<A>) -> Parser<A?> {
   return Parser<A>.oneOf(Parser<A?> { str in
     let original = str
     guard let match = p.run(&str)
