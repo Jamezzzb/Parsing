@@ -111,23 +111,6 @@ public extension Parser where Output == Substring {
   }
 }
 
-// fails parse if not satisfied but does not consume character either way
-// kind of like a lookahead I think, but might be strange.
-// I know the whole point of these parsers is that you
-// have to consume something but idk how to perform this check otherwise
-public extension Parser where Output == Void {
-  static func startsWithCharacter(
-    notIn set: Set<Character>
-  ) -> Self {
-    return Self { str in
-      if let first = str.first {
-        return set.contains(first) ? nil : ()
-      }
-      return ()
-    }
-  }
-}
-
 // parses literal off begining of string
 public extension Parser where Output == Void {
   static func prefix(_ p: String) -> Self {
@@ -187,7 +170,6 @@ public extension Parser where Output == Substring {
     }
   }
 }
-
 
 // MARK: oneOf(_:), zeroOrMoreSpaces, oneOrMoreSpaces, zeroOrMore(_:)
 // returns the first parser that succeeds
