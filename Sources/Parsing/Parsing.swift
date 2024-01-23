@@ -179,6 +179,15 @@ public extension Parser where Output == Character {
   }
 }
 
+public extension Parser where Output == Substring {
+  static func char(_ character: Character) -> Self {
+    return Parser<Character>.char.flatMap {
+      $0 == character ? .always(Substring([$0]))
+      : .never
+    }
+  }
+}
+
 
 // MARK: oneOf(_:), zeroOrMoreSpaces, oneOrMoreSpaces, zeroOrMore(_:)
 // returns the first parser that succeeds
@@ -208,22 +217,4 @@ public extension Parser where Output == Void {
     .flatMap {
     $0.isEmpty ? .never : always(())
   }
-}
-
-
-
-// "optional" parser
-// Function that wraps another parser in a parser that always
-// succeeds and is allowed to return nil.
-// I came up with this but am still kind of confused why it works.
-public func optionally<A>(_ p: Parser<A>) -> Parser<A?> {
-  return Parser<A>.oneOf(Parser<A?> { str in
-    let original = str
-    guard let match = p.run(&str)
-    else {
-      str = original
-      return nil
-    }
-    return match
-  }, .always(nil))
 }
