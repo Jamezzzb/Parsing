@@ -35,12 +35,12 @@ public extension Parser {
 public func zip<each B>(_ b: repeat Parser<each B>) -> Parser<(repeat each B)> {
     return Parser<(repeat each B)> { str -> (repeat each B)? in
         let original = str
-        guard let match = (repeat (each b).run(&str)) as? (repeat each B)
-        else {
+        do {
+            return (repeat try tryUnwrap(val: (each b).run(&str)))
+        } catch {
             str = original
             return nil
         }
-        return match
     }
 }
 
@@ -132,8 +132,11 @@ public extension Parser where Output == Character {
 public extension Parser where Output == Substring {
     static func char(_ character: Character) -> Self {
         return Parser<Character>.char.flatMap {
-            $0 == character ? .always(Substring([$0]))
-            : .never
+            if $0 == character {
+                return .always(Substring([$0]))
+            } else {
+                return .never
+            }
         }
     }
 }
@@ -166,4 +169,15 @@ public extension Parser where Output == Void {
         .flatMap {
             $0.isEmpty ? .never : always(())
         }
+}
+
+enum UnwrapError: Error {
+    case failed
+}
+
+func tryUnwrap<T>(val: T?) throws -> T {
+    guard let val else {
+        throw UnwrapError.failed
+    }
+    return val
 }

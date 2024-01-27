@@ -10,6 +10,7 @@ final class ParsingTests: XCTestCase {
             }
             return Substring([input.removeFirst()])
         }
+        
         let zipped = zip(parser, parser, parser, parser, parser, parser, parser)
         let foo = zipped.run(testString).match.map({ $0 + $1 + $2 + $3 + $4 + $5 + $6 })
         XCTAssertEqual(foo, "Hello W")
