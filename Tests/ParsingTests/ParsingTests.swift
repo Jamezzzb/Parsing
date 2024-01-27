@@ -11,8 +11,19 @@ final class ParsingTests: XCTestCase {
             return Substring([input.removeFirst()])
         }
         
-        let zipped = zip(parser, parser, parser, parser, parser, parser, parser)
-        let foo = zipped.run(testString).match.map({ $0 + $1 + $2 + $3 + $4 + $5 + $6 })
+        let zipped = zip(
+            "",
+            parser,
+            parser,
+            parser,
+            parser,
+            parser,
+            parser,
+            parser
+        )
+        let foo = zipped.run(testString).match.map({ _, parser1, parser2, parser3, parser4, parser5, parser6, parser7 in
+            parser1 + parser2 + parser3 + parser4 + parser5 + parser6 + parser7
+        })
         XCTAssertEqual(foo, "Hello W")
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest
