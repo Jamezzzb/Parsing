@@ -32,29 +32,15 @@ public extension Parser {
     }
 }
 
-public func zip<A, B>(_ a: Parser<A>, _ b: Parser<B>) -> Parser<(A, B)> {
-    return Parser<(A, B)> { str -> (A, B)? in
-        let original = str
-        guard let matchA = a.run(&str) else {
-            return nil
-        }
-        guard let matchB = b.run(&str) else {
-            str = original
-            return nil
-        }
-        return (matchA, matchB)
-    }
-}
-
 public func zip<each B>(_ b: repeat Parser<each B>) -> Parser<(repeat each B)> {
     return Parser<(repeat each B)> { str -> (repeat each B)? in
         let original = str
-        guard let foo = (repeat (each b).run(&str)) as? (repeat each B)?
+        guard let match = (repeat (each b).run(&str)) as? (repeat each B)
         else {
             str = original
             return nil
         }
-        return foo
+        return match
     }
 }
 
