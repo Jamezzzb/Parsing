@@ -4,7 +4,7 @@ public struct Parser<Output> {
         self.run = run
     }
     
-    public func run(_ str: String) -> (match: Output?, rest: Substring) {
+    public func run(_ str: consuming String) -> (match: Output?, rest: Substring) {
         var str = str[...]
         let match = self.run(&str)
         return (match, str)
@@ -21,10 +21,9 @@ public extension Parser {
     func flatMap<B>(_ f: @escaping (Output) -> Parser<B>) -> Parser<B> {
         return Parser<B> { str -> B? in
             let original = str
-            let matchA = self.run(&str)
-            let parserB = matchA.map(f)
+            let parserB = self.run(&str).map(f)
             guard let matchB = parserB?.run(&str) else {
-                str = original
+                str = consume original
                 return nil
             }
             return matchB
@@ -32,13 +31,13 @@ public extension Parser {
     }
 }
 
-public func zip<each B>(_ b: repeat Parser<each B>) -> Parser<(repeat each B)> {
-    return Parser<(repeat each B)> { str -> (repeat each B)? in
+public func zip<each A>(_ a: repeat Parser<each A>) -> Parser<(repeat each A)> {
+    return Parser<(repeat each A)> { str -> (repeat each A)? in
         let original = str
         do {
-            return (repeat try tryUnwrap(val: (each b).run(&str)))
+            return (repeat try unwrap((each a).run(&str)))
         } catch {
-            str = original
+            str = consume original
             return nil
         }
     }
@@ -116,7 +115,7 @@ public extension Parser {
                     return matches
                 }
             }
-            str = rest
+            str = consume rest
             return matches
         }
     }
@@ -174,8 +173,11 @@ public extension Parser where Output == Void {
 enum UnwrapError: Error {
     case failed
 }
-
-func tryUnwrap<T>(val: T?) throws -> T {
+// Specifically for use with parameter packs.
+// without this I could not figure out how to return (each Output)? i.e. they
+// all succeed otherwise return nil.
+// https://developer.apple.com/videos/play/wwdc2023/10168/
+func unwrap<T>(_ val: T?) throws -> T {
     guard let val else {
         throw UnwrapError.failed
     }

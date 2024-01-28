@@ -3,6 +3,7 @@ import XCTest
 
 final class ParsingTests: XCTestCase {
     let testString = "Hello World"
+    
     func testExample() throws {
         let parser = Parser<Substring> { input in
             guard !input.isEmpty else {
@@ -21,8 +22,8 @@ final class ParsingTests: XCTestCase {
             parser,
             parser
         )
-        let foo = zipped.run(testString).match.map({ _, parser1, parser2, parser3, parser4, parser5, parser6, parser7 in
-            parser1 + parser2 + parser3 + parser4 + parser5 + parser6 + parser7
+        let foo = zipped.run(testString).match.map({ _, m1, m2, m3, m4, m5, m6, m7 in
+            m1 + m2 + m3 + m4 + m5 + m6 + m7
         })
         XCTAssertEqual(foo, "Hello W")
         // XCTest Documentation
