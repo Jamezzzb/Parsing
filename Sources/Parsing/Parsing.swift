@@ -1,9 +1,26 @@
+/// A generic type for building parsers of (`String`) -> `Output`
 public struct Parser<Output> {
+    /// Called inside of `run(_:)`.
     public let run: (inout Substring) -> Output?
+    
+    
+    /// Initializes a `Parser` with a mutating function on `Substring`.
+    ///
+    /// It is best practice to have your run function consume part of the `Substring`.
     public init(run: @escaping (inout Substring) -> Output?) {
         self.run = run
     }
     
+    /// Attempts to parse `Output` from provided input string.
+    ///
+    /// Will consume the matching portion of the input or return a `nil` match.
+    /// `rest` is the portion of the input not matched.
+    ///
+    /// - Parameters:
+    ///   - str: the string to parse.
+    ///
+    /// - Returns: a tuple of match and remainder of the string.
+    ///
     public func run(_ str: consuming String) -> (match: Output?, rest: Substring) {
         var str = str[...]
         let match = self.run(&str)
@@ -31,6 +48,7 @@ public extension Parser {
     }
 }
 
+/// Runs the parsers in order returning a `nil` match and unconsumed string on failure.
 public func zip<each A>(_ a: repeat Parser<each A>) -> Parser<(repeat each A)> {
     return Parser<(repeat each A)> { str -> (repeat each A)? in
         let original = str
@@ -46,21 +64,23 @@ public func zip<each A>(_ a: repeat Parser<each A>) -> Parser<(repeat each A)> {
 // MARK: Always/Never parsers
 // always succeeds
 public extension Parser {
+    /// A parser that always `succeeds`, useful when combined with `flatMap(_:)`.
     static func always<A>(_ a: A) -> Parser<A> {
         return Parser<A> { _ in a }
     }
 }
 
 public extension Parser {
-    // always fails
+    /// A parser that always fails, useful when combined with `flatMap(_:)`.
     static var never: Parser {
         return Parser { _ in nil }
     }
 }
 
 // MARK: Prefix funcs
-// returns a Parser<Substring> that prefixes until predicate fails
 public extension Parser where Output == Substring {
+    
+    /// A `Parser` that prefixes until predicate fails.
     static func prefix(while p: @escaping (Character) -> Bool) -> Self {
         return Self { str in
             let prefix = str.prefix(while: p)
@@ -70,15 +90,15 @@ public extension Parser where Output == Substring {
     }
 }
 
-// Prefixes so long as characters not contained in given set
 public extension Parser where Output == Substring {
+    /// A `Parser` that prefixes while encountered characters not contained in given set.
     static func matchingAllCharacters(notIn set: Set<Character>) -> Self {
         return .prefix(while: { !set.contains($0) })
     }
 }
 
-// parses literal off begining of string
 public extension Parser where Output == Void {
+    /// parses literal off beginning of string
     static func prefix(_ p: String) -> Self {
         return Self { str in
             guard str.hasPrefix(p) else { return nil }
@@ -141,7 +161,6 @@ public extension Parser where Output == Substring {
 }
 
 // MARK: oneOf(_:), zeroOrMoreSpaces, oneOrMoreSpaces, zeroOrMore(_:)
-// returns the first parser that succeeds
 extension Parser {
     private static func oneOf<A>(_ ps: [Parser<A>]) -> Parser<A> {
         return Parser<A> { str -> A? in
@@ -154,6 +173,7 @@ extension Parser {
         }
     }
     
+    /// returns the first parser that succeeds
     public static func oneOf<A>(_ ps: Parser<A>...) -> Parser<A> {
         return oneOf(ps)
     }
