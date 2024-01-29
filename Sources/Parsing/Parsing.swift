@@ -39,7 +39,8 @@ public extension Parser {
     return Parser<B> { str -> B? in
       let original = str
       let parserB = self.run(&str).map(f)
-      guard let matchB = parserB?.run(&str) else {
+      guard let matchB = parserB?.run(&str) 
+      else {
         str = consume original
         return nil
       }
@@ -194,8 +195,8 @@ enum UnwrapError: Error {
   case failed
 }
 
+// FIXME: This workaround will be unnecessary once we have nested pack iteration.
 // A throwing unwrap for short-circuiting as soon as a Parser<A>.run(&str) returns nil.
-// This workaround will be unnecessary once nested pack iteration is allowed
 func unwrap<T>(_ some: T?) throws -> T {
   guard let some else {
     throw UnwrapError.failed
