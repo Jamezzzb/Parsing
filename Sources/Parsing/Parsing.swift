@@ -104,7 +104,7 @@ public extension Parser where Output == Void {
     return Self { str in
       guard str.hasPrefix(p) else { return nil }
       str.removeFirst(p.count)
-      return ()
+      return Void()
     }
   }
 }
@@ -187,7 +187,7 @@ public extension Parser where Output == Void {
   static let oneOrMoreSpaces = Parser<Substring>
     .prefix(while: { $0 == " " })
     .flatMap {
-      $0.isEmpty ? .never : always(())
+      $0.isEmpty ? .never : always(Void())
     }
 }
 
