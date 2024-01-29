@@ -21,7 +21,7 @@ public struct Parser<Output> {
   ///
   /// - Returns: a tuple of match and remainder of the string.
   ///
-  public func run(_ str: consuming String) -> (match: Output?, rest: Substring) {
+  public func run(_ str: String) -> (match: Output?, rest: Substring) {
     var str = str[...]
     let match = self.run(&str)
     return (match, str)
