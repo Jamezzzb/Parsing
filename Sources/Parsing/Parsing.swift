@@ -193,13 +193,12 @@ public extension Parser where Output == Void {
 enum UnwrapError: Error {
     case failed
 }
-// Specifically for use with parameter packs.
-// without this I could not figure out how to return (each Output)? i.e. they
-// all succeed otherwise return nil.
-// https://developer.apple.com/videos/play/wwdc2023/10168/
-func unwrap<T>(_ val: T?) throws -> T {
-    guard let val else {
+
+// A throwing unwrap for short-circuiting as soon as a Parser<A>.run(&str) returns nil.
+// This workaround will be unnecessary once nested pack iteration is allowed
+func unwrap<T>(_ some: T?) throws -> T {
+    guard let some else {
         throw UnwrapError.failed
     }
-    return val
+    return some
 }
